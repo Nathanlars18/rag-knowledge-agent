@@ -6,3 +6,6 @@ langchain-classic
 chromadb
 zhipuai
 pypdf
+sniffio
+httpx
+pydantic
