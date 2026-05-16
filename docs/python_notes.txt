@@ -1,0 +1,13 @@
+Python 虚拟环境使用步骤（Windows）：  
+1. 在项目目录下执行：python -m venv venv  
+2. 激活环境：venv\Scripts\activate  
+3. 退出环境：deactivate  
+
+常用 pip 命令：  
+- pip list：查看已安装的包  
+- pip install 包名：安装包  
+- pip freeze > requirements.txt：导出依赖列表  
+
+Streamlit 快速启动：  
+写一个 app.py，在终端执行 streamlit run app.py，会自动打开浏览器。  
+Streamlit 的组件包括：st.title, st.write, st.text_input, st.button 等，非常适合快速搭建 AI 应用的界面。

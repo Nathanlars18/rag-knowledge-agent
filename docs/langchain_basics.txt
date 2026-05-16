@@ -1,0 +1,9 @@
+LangChain 是一个用于开发由语言模型驱动的应用程序的框架。它提供了标准化的接口来链接不同的组件。  
+常用的 LangChain 模块包括：  
+- Document Loaders：从各种源（PDF、网页、TXT）加载文档。  
+- Text Splitters：将文档分割成适合模型上下文长度的块。  
+- Embeddings：将文本转换为向量表示。  
+- Vector Stores：如 Chroma、FAISS，用于存储和检索向量。  
+- Chains：将多个步骤组合成一个流水线。  
+- RetrievalQA：一个专门用于问答的链，它先检索相关文档，再基于这些文档回答问题。  
+使用 LangChain 可以快速搭建一个 RAG 系统，代码量通常不到 100 行。
