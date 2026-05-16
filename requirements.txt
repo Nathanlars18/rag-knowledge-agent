@@ -9,3 +9,4 @@ pypdf
 sniffio
 httpx
 pydantic
+protobuf==3.20.3
