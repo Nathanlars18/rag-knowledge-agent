@@ -16,7 +16,7 @@ from langchain_community.chat_models import ChatZhipuAI
 
 # ---------- 配置 ----------
 # 请替换成你自己的智谱 API Key
-ZHIPUAI_API_KEY = "b0c1ad3bb00444c0a8552cd580c164dc.pDy2ePa1NtZtAaq0"
+ZHIPUAI_API_KEY = os.environ.get("ZHIPUAI_API_KEY")
 
 # 1. 加载并切分文档
 def load_docs(directory="./docs"):
