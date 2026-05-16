@@ -1,4 +1,5 @@
 import os
+import shutil
 # 设置 HuggingFace 镜像（如果还用不到可删除）
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
@@ -8,14 +9,11 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_classic.chains import RetrievalQA
 from langchain_community.chat_models import ChatZhipuAI
-# 关键：改用智谱的 Embeddings
 from langchain_community.embeddings import ZhipuAIEmbeddings
 
 # ---------- 配置 ----------
-# 从环境变量读取 API Key（Streamlit Secrets 中配置）
 ZHIPUAI_API_KEY = os.environ.get("ZHIPUAI_API_KEY")
 
-# 1. 加载并切分文档
 def load_docs(directory="./docs"):
     docs = []
     if not os.path.exists(directory):
@@ -33,30 +31,25 @@ def load_docs(directory="./docs"):
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     return splitter.split_documents(docs)
 
-# 2. 构建向量库（使用智谱 embedding API，完全无需本地模型）
 @st.cache_resource
 def build_vectorstore():
+    # 删除旧的 chroma_db 目录，避免维度冲突
+    if os.path.exists("./chroma_db"):
+        shutil.rmtree("./chroma_db")
     chunks = load_docs()
     if not chunks:
         return None
-    # 注意：这里使用智谱的 embedding 接口
     embeddings = ZhipuAIEmbeddings(api_key=ZHIPUAI_API_KEY, model="embedding-2")
     vectorstore = Chroma.from_documents(chunks, embeddings, persist_directory="./chroma_db")
     vectorstore.persist()
     return vectorstore
 
-# 3. 创建 RAG 链（使用智谱大模型）
 def get_qa_chain(vectorstore):
-    llm = ChatZhipuAI(
-        api_key=ZHIPUAI_API_KEY,
-        model="glm-4",
-        temperature=0.1,
-    )
+    llm = ChatZhipuAI(api_key=ZHIPUAI_API_KEY, model="glm-4", temperature=0.1)
     retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
     qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever, return_source_documents=True)
     return qa
 
-# 4. Streamlit 界面
 st.set_page_config(page_title="个人知识库助手", layout="wide")
 st.title("📚 你的 RAG 知识问答 Agent")
 st.markdown("把文档放进 `docs/` 文件夹，然后问任何关于这些文档的问题。")
