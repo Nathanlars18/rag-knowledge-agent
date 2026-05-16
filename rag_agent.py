@@ -1,21 +1,18 @@
 import os
-# 设置 HuggingFace 镜像（放在所有其他导入之前）
+# 设置 HuggingFace 镜像（如果还用不到可删除）
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
 import streamlit as st
-# 1. 使用 langchain_community 下的文档加载器（已修复）
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
-# 2. 使用 langchain_text_splitters（已修复）
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-# 3. 使用 langchain_community 下的 Embeddings 和 Vectorstores（已修复）
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-# 4. 使用 langchain_classic 下的 RetrievalQA（最新修复）
 from langchain_classic.chains import RetrievalQA
 from langchain_community.chat_models import ChatZhipuAI
+# 关键：改用智谱的 Embeddings
+from langchain_community.embeddings import ZhipuAIEmbeddings
 
 # ---------- 配置 ----------
-# 请替换成你自己的智谱 API Key
+# 从环境变量读取 API Key（Streamlit Secrets 中配置）
 ZHIPUAI_API_KEY = os.environ.get("ZHIPUAI_API_KEY")
 
 # 1. 加载并切分文档
@@ -36,18 +33,19 @@ def load_docs(directory="./docs"):
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     return splitter.split_documents(docs)
 
-# 2. 构建向量库（使用本地 HuggingFace embedding，免费）
+# 2. 构建向量库（使用智谱 embedding API，完全无需本地模型）
 @st.cache_resource
 def build_vectorstore():
     chunks = load_docs()
     if not chunks:
         return None
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    # 注意：这里使用智谱的 embedding 接口
+    embeddings = ZhipuAIEmbeddings(api_key=ZHIPUAI_API_KEY, model="embedding-2")
     vectorstore = Chroma.from_documents(chunks, embeddings, persist_directory="./chroma_db")
     vectorstore.persist()
     return vectorstore
 
-# 3. 创建 RAG 链（使用智谱AI）
+# 3. 创建 RAG 链（使用智谱大模型）
 def get_qa_chain(vectorstore):
     llm = ChatZhipuAI(
         api_key=ZHIPUAI_API_KEY,
